@@ -17,7 +17,7 @@ async def handle_feedback(callback: CallbackQuery) -> None:
     user = callback.from_user
 
     # Проверка пермишна перед вызовом API
-    if not await api.has_permission(user.id, "rate_message"):
+    if not await api.has_permission(user.id, "ask_question"):
         await callback.answer("⛔ Нет доступа для оценки ответов.", show_alert=True)
         return
 

@@ -1,6 +1,7 @@
 import logging
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from app.services import api
@@ -11,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message) -> None:
+async def cmd_start(message: Message, state: FSMContext) -> None:
+    await state.clear()
     user = message.from_user
 
     # Регистрируем / обновляем пользователя и сразу читаем его статус
@@ -41,15 +43,16 @@ async def cmd_start(message: Message) -> None:
 
     # Получаем пермишны чтобы показать правильную клавиатуру
     perms = await api.get_permissions(user.id)
-    can_upload = "upload_document" in perms
+    can_upload = "upload_documents" in perms
+    can_manage_users = "manage_users" in perms
 
-    logger.info("User started: telegram_id=%d can_upload=%s", user.id, can_upload)
+    logger.info("User started: telegram_id=%d can_upload=%s can_manage_users=%s", user.id, can_upload, can_manage_users)
 
     await message.answer(
         f"👋 Привет, <b>{user.full_name}</b>!\n\n"
         "Я FAQ-бот университета. Задайте вопрос — я найду ответ в базе знаний.\n\n"
         "Используйте кнопку ниже или просто напишите вопрос.",
-        reply_markup=main_keyboard(can_upload=can_upload),
+        reply_markup=main_keyboard(can_upload=can_upload, can_manage_users=can_manage_users),
     )
 
 
@@ -57,7 +60,8 @@ async def cmd_start(message: Message) -> None:
 async def cmd_help(message: Message) -> None:
     user = message.from_user
     perms = await api.get_permissions(user.id)
-    can_upload = "upload_document" in perms
+    can_upload = "upload_documents" in perms
+    can_manage_users = "manage_users" in perms
 
     lines = [
         "📖 <b>Справка по боту</b>\n",
@@ -71,7 +75,11 @@ async def cmd_help(message: Message) -> None:
     ]
 
     if can_upload:
-        lines.append("📂 Загрузить документ — добавить PDF, DOCX или TXT в базу знаний")
+        lines.append("📂 Загрузить документ — добавить PDF, DOCX, TXT, HTML или MD в базу знаний")
+        lines.append("📋 Документы — управление документами в базе знаний")
+
+    if can_manage_users:
+        lines.append("👥 Пользователи — управление ролями пользователей")
 
     lines.append("\nПосле каждого ответа можно нажать 👍 или 👎 — это помогает улучшать систему.")
 

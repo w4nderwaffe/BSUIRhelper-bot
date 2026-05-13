@@ -18,6 +18,12 @@ async def btn_ask_question(message: Message) -> None:
     await message.answer("Напишите ваш вопрос, и я найду ответ 🔍")
 
 
+@router.message(F.text == "🔄 Новый разговор")
+async def btn_new_session(message: Message, state: FSMContext) -> None:
+    await state.update_data({SESSION_KEY: None})
+    await message.answer("🔄 Начат новый разговор — контекст предыдущего очищен.")
+
+
 @router.message(F.text & ~F.text.startswith("/"))
 async def handle_question(message: Message, state: FSMContext) -> None:
     user = message.from_user

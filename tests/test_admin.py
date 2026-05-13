@@ -45,8 +45,8 @@ async def test_btn_upload_with_permission():
     state = make_fsm_context(storage, user_id=msg.from_user.id)
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=True)):
-        from app.handlers.admin import btn_upload_document
-        await btn_upload_document(msg, state)
+        from app.handlers.admin import btn_upload_documents
+        await btn_upload_documents(msg, state)
 
     msg.answer.assert_called_once()
     assert "Отправьте файл" in msg.answer.call_args[0][0]
@@ -63,8 +63,8 @@ async def test_btn_upload_no_permission():
     state = make_fsm_context(storage, user_id=msg.from_user.id)
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=False)):
-        from app.handlers.admin import btn_upload_document
-        await btn_upload_document(msg, state)
+        from app.handlers.admin import btn_upload_documents
+        await btn_upload_documents(msg, state)
 
     text = msg.answer.call_args[0][0]
     assert "⛔" in text
@@ -93,7 +93,7 @@ async def test_upload_allowed_formats(mime_type, filename):
     doc_result = {"id": "doc-001", "title": filename}
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=True)), \
-         patch("app.handlers.admin.api.upload_document", new=AsyncMock(return_value=doc_result)):
+         patch("app.handlers.admin.api.upload_documents", new=AsyncMock(return_value=doc_result)):
 
         from app.handlers.admin import handle_document
         await handle_document(msg, state)
@@ -115,7 +115,7 @@ async def test_upload_wrong_format():
     await state.set_state(UploadDocument.waiting_for_file)
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=True)), \
-         patch("app.handlers.admin.api.upload_document", new=AsyncMock()) as mock_upload:
+         patch("app.handlers.admin.api.upload_documents", new=AsyncMock()) as mock_upload:
 
         from app.handlers.admin import handle_document
         await handle_document(msg, state)
@@ -137,7 +137,7 @@ async def test_upload_permission_revoked_mid_flow():
     await state.set_state(UploadDocument.waiting_for_file)
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=False)), \
-         patch("app.handlers.admin.api.upload_document", new=AsyncMock()) as mock_upload:
+         patch("app.handlers.admin.api.upload_documents", new=AsyncMock()) as mock_upload:
 
         from app.handlers.admin import handle_document
         await handle_document(msg, state)
@@ -157,7 +157,7 @@ async def test_upload_api_error():
     await state.set_state(UploadDocument.waiting_for_file)
 
     with patch("app.handlers.admin.api.has_permission", new=AsyncMock(return_value=True)), \
-         patch("app.handlers.admin.api.upload_document", new=AsyncMock(return_value=None)):
+         patch("app.handlers.admin.api.upload_documents", new=AsyncMock(return_value=None)):
 
         from app.handlers.admin import handle_document
         await handle_document(msg, state)

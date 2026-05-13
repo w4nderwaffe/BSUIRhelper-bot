@@ -10,7 +10,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault
 from aiogram.types import ErrorEvent
 from dotenv import load_dotenv
 
-from app.handlers import start, question, admin, feedback
+from app.handlers import start, question, admin, feedback, admin_panel
 
 load_dotenv()
 
@@ -59,6 +59,7 @@ async def main() -> None:
     # Порядок важен: admin раньше question (перехватывает F.document)
     dp.include_router(start.router)
     dp.include_router(admin.router)
+    dp.include_router(admin_panel.router)
     dp.include_router(feedback.router)
     dp.include_router(question.router)
 

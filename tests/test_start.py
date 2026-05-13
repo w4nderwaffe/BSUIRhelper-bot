@@ -23,7 +23,7 @@ from tests.conftest import make_message
 
 @pytest.mark.asyncio
 async def test_start_active_user():
-    """Активный пользователь без upload_document — приветствие, кнопки без загрузки."""
+    """Активный пользователь без upload_documents — приветствие, кнопки без загрузки."""
     msg = make_message(text="/start")
 
     with patch("app.handlers.start.api.sync_user", new=AsyncMock(return_value={"status": "active"})), \
@@ -46,11 +46,11 @@ async def test_start_active_user():
 
 @pytest.mark.asyncio
 async def test_start_admin_user():
-    """Администратор с upload_document — видит кнопку загрузки."""
+    """Администратор с upload_documents — видит кнопку загрузки."""
     msg = make_message(text="/start")
 
     with patch("app.handlers.start.api.sync_user", new=AsyncMock(return_value={"status": "active"})), \
-         patch("app.handlers.start.api.get_permissions", new=AsyncMock(return_value=["ask_question", "upload_document", "rate_message"])):
+         patch("app.handlers.start.api.get_permissions", new=AsyncMock(return_value=["ask_question", "upload_documents", "rate_message"])):
 
         from app.handlers.start import cmd_start
         await cmd_start(msg)
@@ -128,7 +128,7 @@ async def test_help_admin_user():
     """Администратор — /help содержит строку про загрузку документов."""
     msg = make_message(text="/help")
 
-    with patch("app.handlers.start.api.get_permissions", new=AsyncMock(return_value=["ask_question", "upload_document"])):
+    with patch("app.handlers.start.api.get_permissions", new=AsyncMock(return_value=["ask_question", "upload_documents"])):
         from app.handlers.start import cmd_help
         await cmd_help(msg)
 

@@ -15,8 +15,8 @@ tests/test_api.py
     11. rate_message — успех → "ok"
     12. rate_message — 404 → "not_found"
     13. rate_message — ошибка → "error"
-    14. upload_document — успех → dict
-    15. upload_document — бэкенд недоступен → None
+    14. upload_documents — успех → dict
+    15. upload_documents — бэкенд недоступен → None
 """
 
 import time
@@ -32,7 +32,7 @@ from app.services.api import (
     sync_user,
     ask_question,
     rate_message,
-    upload_document,
+    upload_documents,
 )
 
 USER_ID = 42
@@ -70,7 +70,7 @@ def _patch_perms(perms: list[str]):
 async def test_has_permission_true():
     """Пермишн есть в списке — возвращает True."""
     invalidate_permissions_cache(USER_ID)
-    client = _patch_perms(["ask_question", "upload_document"])
+    client = _patch_perms(["ask_question", "upload_documents"])
 
     with patch("app.services.api.httpx.AsyncClient") as mock_cls:
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=client)
@@ -89,7 +89,7 @@ async def test_has_permission_false():
     with patch("app.services.api.httpx.AsyncClient") as mock_cls:
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=client)
         mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-        result = await has_permission(USER_ID, "upload_document")
+        result = await has_permission(USER_ID, "upload_documents")
 
     assert result is False
 
@@ -280,11 +280,11 @@ async def test_rate_message_error():
 
 
 # ---------------------------------------------------------------------------
-# upload_document
+# upload_documents
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_upload_document_success():
+async def test_upload_documents_success():
     """201 → возвращает DocumentResponse."""
     resp = _mock_response(201, {"id": "doc-999", "title": "test.pdf"})
     client_mock = AsyncMock()
@@ -293,18 +293,18 @@ async def test_upload_document_success():
     with patch("app.services.api.httpx.AsyncClient") as mock_cls:
         mock_cls.return_value.__aenter__ = AsyncMock(return_value=client_mock)
         mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-        result = await upload_document(USER_ID, b"content", "test.pdf", "test.pdf")
+        result = await upload_documents(USER_ID, b"content", "test.pdf", "test.pdf")
 
     assert result["id"] == "doc-999"
 
 
 @pytest.mark.asyncio
-async def test_upload_document_unavailable():
+async def test_upload_documents_unavailable():
     """Бэкенд недоступен → None."""
     with patch("app.services.api.httpx.AsyncClient") as mock_cls:
         mock_cls.return_value.__aenter__ = AsyncMock(
             side_effect=httpx.RequestError("timeout")
         )
-        result = await upload_document(USER_ID, b"content", "test.pdf", "test.pdf")
+        result = await upload_documents(USER_ID, b"content", "test.pdf", "test.pdf")
 
     assert result is None
